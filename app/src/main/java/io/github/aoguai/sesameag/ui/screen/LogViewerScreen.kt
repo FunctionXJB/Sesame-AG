@@ -143,10 +143,18 @@ fun LogViewerScreen(
     val focusRequester = remember { FocusRequester() }
     var showClearDialog by rememberSaveable(filePath) { mutableStateOf(false) }
 
-    // 仅在搜索模式下消费返回；页面返回交给 NavDisplay，以保留预测性返回手势动画。
-    BackHandler(enabled = isSearchActive) {
-        isSearchActive = false
-        viewModel.search("")
+    // 拦截返回键。
+    // 预测性返回手势(Android 14+)在动画阶段同时组合当前页与上一页，若直接让
+    // NavDisplay 弹出返回栈，ViewModel 的异步任务(loadJob/updateJob/FileObserver)
+    // 可能与 Compose 拆卸产生竞态而闪退。这里统一先同步清理再返回。
+    BackHandler {
+        if (isSearchActive) {
+            isSearchActive = false
+            viewModel.search("")
+        } else {
+            viewModel.stopLoading()
+            onBackClick()
+        }
     }
 
     LaunchedEffect(filePath, viewModel) {

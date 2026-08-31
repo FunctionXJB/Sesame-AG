@@ -2,9 +2,11 @@ name: Release Build
 run-name: Release Build - ${{ github.ref_name }}
 
 on:
+  # 原官方发布流程依赖官方签名 secrets，fork 场景下不适用。
+  # fork 构建请使用 fork-build.yml（打 tag 或手动 dispatch 触发）。
   push:
-    tags:
-      - "[0-9]*-*"
+    branches:
+      - "__disabled__"
 
 env:
   CI: "true"
