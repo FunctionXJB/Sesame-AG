@@ -382,6 +382,16 @@ object AccountSlotRegistry {
     private fun hasVerifiedConfiguredUser(userId: String): Boolean =
         verifiedDirectoryUserId(File(Files.CONFIG_DIR, userId)) == userId
 
+    /**
+     * 仅检查账号的配置目录是否仍然存在（config_v2.json 存在且非空）。
+     * 不检查 self.json，避免因并发读写导致 self.json 临时为空而将账号永久剔出可执行槽位。
+     */
+    private fun hasConfigDirectory(userId: String): Boolean {
+        val dir = File(Files.CONFIG_DIR, userId)
+        val configFile = File(dir, "config_v2.json")
+        return configFile.isFile && configFile.length() > 0L
+    }
+
     private fun bootstrapRecord(): AccountSlotRecord {
         val candidates = configuredUserIds()
         return when {
@@ -422,7 +432,7 @@ object AccountSlotRegistry {
 
             recordWithoutExpiredPending.migrationState == AccountSlotMigrationState.READY -> {
                 recordWithoutExpiredPending.copy(
-                    activeUserIds = recordWithoutExpiredPending.activeUserIds.filter { it in candidates },
+                    activeUserIds = recordWithoutExpiredPending.activeUserIds.filter { hasConfigDirectory(it) },
                 )
             }
 
