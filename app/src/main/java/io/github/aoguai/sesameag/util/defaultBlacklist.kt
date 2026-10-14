@@ -15,6 +15,8 @@ private val sesameCreditDefaultBlacklist =
         "zml_mybx_xiadan_erfang",
         "zml_check_in_subscribe_task", // joinActivity 返回 PROMISE_TEMPLATE_NOT_EXIST
         "zml_set_home_task", // joinActivity 返回 PROMISE_TEMPLATE_NOT_EXIST
+        "玩游戏赢最高8888元红包", // 动态taskId每期变化，需游戏内事件，ILLEGAL_ARGUMENT promiseActivityExtCheck
+        "AP17379724", // 芝麻树租绿任务，rentGreenTaskFinish 返回 20020012
         "zml_zmzl_xdrw_erfang", // pushActivity 返回 ILLEGAL_ARGUMENT，需真实租赁下单
         "zml_tbbbnc_shifei_sanfang", // pushActivity 返回 ILLEGAL_ARGUMENT，需真实淘宝行为
         "zmxy_zml_wannengxiaozujian", // pushActivity 返回 ILLEGAL_ARGUMENT，需真实桌面组件行为
@@ -41,16 +43,17 @@ private val sesameAlchemyDefaultBlacklist =
         "hjwf_xiangjiangshikaipao_renwu", // 游戏事件不能由pushActivity完成，返回ILLEGAL_ARGUMENT
         "hjwf_zcylt_chongzhi", // 真实充值不能由pushActivity完成，返回ILLEGAL_ARGUMENT
         "hjwf_langmancanting_renwu", // 完成3个订单的游戏事件，pushActivity返回ILLEGAL_ARGUMENT
+        "玩游戏赢最高8888元红包", // 动态taskId每期变化，需游戏内事件，ILLEGAL_ARGUMENT promiseActivityExtCheck
     )
 
 private val orchardDefaultBlacklist =
     setOf(
         // 芭芭农场
-        "ORCHARD_NORMAL_KUAISHOU_MAX", // 逛一逛快手
         "ORCHARD_NORMAL_DIAOYU1", // 钓鱼1次
         "ZHUFANG3IN1", // 添加农场小组件并访问
         "70000|逛好物最高得1500肥料", // XLight广告流量风控，缺少稳定自动闭环
         "12173", // 买好货
+        "104283", // “抢”农货得120000肥料，需要真实下单
         "TOUTIAO|逛一逛今日头条", // 精确匹配旧今日头条任务，避免误伤趣头条任务
         "ORCHARD_NORMAL_JIUYIHUISHOU_VISIT", // 旧衣服回收
         "ORCHARD_NORMAL_SHOUJISHUMAHUISHOU", // 数码回收
@@ -58,9 +61,7 @@ private val orchardDefaultBlacklist =
         "ORCHARD_NORMAL_AQ_XIAZAI", // 下载蚂蚁阿福看健康攻略
         "ncflzhrw51", // 去游戏中心抢金条：不支持rpc调用
         "babafarm_cjmk_xdujdd15", // 去游戏中心玩游戏：不支持rpc调用
-        "LINGHUOTIAOKONG", // 逛一逛新浪微博
         "ANTFARM_ORCHARD_NORMAL_YITAO", // 逛一逛一淘
-        "ANTFARM_ORCHARD_NORMAL_CAINIAO_DUAN", // 菜鸟任务 finishTask 返回 400000040
         "ORCHARD_NCLY_ZH_MSQYJ_V3", // 美食趣味记依赖真实游戏事件
         "ORCHARD_NCLY_ZH_DDPLY_V3", // 对对碰乐园依赖真实游戏事件
         "ORCHARD_NCLY_ZH_JHWG_V3",
@@ -73,9 +74,7 @@ private val orchardDefaultBlacklist =
         "CHOUCHOULE_GAME_WDHYSJ_CHARGE", // 需真实充值，finishDrawTask 返回 400000040
         "ORCHARD_NORMAL_GAODE_VISIT|去高德发表真实评价", // finishTask 返回 400000040，不支持rpc调用
         "ORCHARD_NORMAL_SHANGOUMIANDAN|逛一逛淘宝闪购", // finishTask 返回 400000040，不支持rpc调用
-        "ORCHARD_NORMAL_TAOBAOTAOLIPAI_VISIT|逛一逛淘宝拍照", // 不支持rpc调用
         "ORCHARD_NORMAL_TAOBAO26_618|去淘金币赢20亿", // 不支持rpc调用，缺少稳定完成RPC闭环
-        "ORCHARD_NORMAL_WAIMAIMIANDAN", // 逛一逛闪购外卖
         "ORCHARD_NORMAL_BAIDU_DUO", // 去百度浏览资讯
         "ORCHARD_NORMAL_XIANXIAZHIFU100", // 到店支付1笔得100肥
         "ANTFARM_ORCHARD_P2P_SHARER", // 分享给好友
@@ -110,6 +109,10 @@ private val farmDefaultBlacklist =
         // 蚂蚁庄园
         "HEART_DONATION_ADVANCED_FOOD_V2", // 茉莉雪梨卷任务
         "HEART_DONATE", // 爱心捐赠
+        "MYZY_pay_rcccl_jhwg", // 游戏充值得10次抽抽乐机会，需真实支付
+        "MYZY_pay_IPccl_jhwg", // 游戏充值得10次抽抽乐机会，需真实支付
+        "antfarm_pay_task_wdhysj_ccl", // 游戏充值得10次抽抽乐机会，需真实支付
+        "ipccl_pay_ah_wdhy_ahsj_1y_ah", // 游戏充值得10次抽抽乐机会，需真实支付
         "20251118_chouchoulechoukuan2|伸出援手，点亮希望", // 装扮抽抽乐公益捐赠任务
         "innerAction:DONATION", // 装扮抽抽乐公益捐赠任务动作
         "categorizationSecondLevel:Public_Welfare_Behavior", // 装扮抽抽乐公益行为分类
@@ -117,6 +120,7 @@ private val farmDefaultBlacklist =
         "desc:单笔捐赠", // 装扮抽抽乐捐赠换机会任务描述
         "targetUrl:donationSubject", // 装扮抽抽乐公益捐赠专题页
         "SHANGOU_xiadan", // 逛闪购外卖1元起吃
+        "LSHS_xiadan_202509", // 完成1笔旧衣回收，需要真实回收订单
         "OFFLINE_PAY", // 到店付款
         "ONLINE_PAY", // 线上支付
         "HUABEI_MAP_180", // 用花呗完成一笔支付
@@ -131,6 +135,7 @@ private val oceanDefaultBlacklist =
     setOf(
         "BWXRK_QDRW_HAIYANG",
         "AIFISH_ZHUANHUA_MHXCZ", // aiFishFinishTask 返回 400000040，当前任务类型不支持
+        "SYH_DCHY_zhuanhua202609", // 限时任务：完成任意游戏任务，finishTask 返回 400000040 不支持rpc调用
     )
 
 private val forestDefaultBlacklist =
@@ -191,7 +196,6 @@ private val forestDefaultBlacklist =
         "ENERGY_XUANJIAO_ditiechuxing地铁出行",
         "ENERGY_XUANJIAO_guangpanxingdong光盘行动",
         "ENERGY_XUANJIAO_dianzizhifu电子支付",
-        "FOREST_CONTINUOUS_COLLECT_ENERGY_7连续7天收自己能量",
         "LSHS_huisho20_202508", // 完成旧衣回收得能量
         "YUSHU_202511", // 单种榆树，年年有榆
         "KTKZ_YS202511", // 一起组团种榆树
@@ -229,19 +233,6 @@ private val forestDefaultBlacklist =
         "通过5关",
     )
 
-private val fishPondDefaultBlacklist =
-    setOf(
-        // 福气鱼池：游戏、订阅、分享、翻倍广告等任务缺少稳定自动完成闭环
-        "FISHPOND_NCLY_GAME",
-        "NORMAL_RENMENYOUXI",
-        "TASK_SUBSCRIBE",
-        "ANTFISHPOND_WECHAT_SHARE",
-        "LOTTERY_PLUS",
-        "RESCUE_AD",
-        "RESULT_DOUBLE_AD",
-        "FLOAT_GAME_AD",
-    )
-
 private val stallDefaultBlacklist =
     setOf(
         // 蚂蚁新村
@@ -253,6 +244,7 @@ private val stallDefaultBlacklist =
         "ANTSTALL_TASK_xcjmjyjuankuan2026|帮乡村姐妹家乡就业",
         "ANTSTALL_TASK_kuaishouhuanduan|去快手逛一逛",
         "ANTSTALL_TASK_taojinbihuanduan|进入淘宝芭芭农场领免费水果",
+        "ANTSTALL_ELEME_VISIT|去饿了么果园逛一逛", // 外跳任务，需真实到饿了么果园页面浏览上报，无自动闭环（generateToken后服务端不翻转状态）
         "ANTSTALL_P2P_DAILY_SHARER|邀请好友助力",
         "ANTSTALL_TASK_XCXYX_langmancanting", // 需要完成游戏订单，普通finishTask返回400000040
         "ANTSTALL_TASK_XCXYX_qingyunjue", // 需要游戏内闯关事件，普通finishTask返回400000040
@@ -374,6 +366,10 @@ private val youthPrivilegeDefaultBlacklist =
 private val sportsDefaultBlacklist =
     setOf(
         // 运动
+        "AP19300602", // 添加支付宝小组件
+        "AP11258305", // 医疗健康添加首页任务
+        "STEP_STETLEMENT_TASK", // 步数满1000
+        "DURATION_STETLEMENT_TASK", // 锻炼30分钟
         "玩游戏",
         // 签名/设计类广告任务：finishAdTask 返回 304/TASK_NOT_FINISHED
         "AP17300472",
@@ -392,6 +388,7 @@ private val sportsDefaultBlacklist =
 
 private val myBankWelfareDefaultBlacklist =
     setOf(
+        "AP12377633", // 绑卡事件任务，通用send返回10000005，需真实绑卡行为
         "AP12341521", // 查看借呗额度：需真实授信业务行为
         "AP18353629", // 办理全国大流量卡：需真实办理业务
         "AP12333795", // 完成1笔借呗支用：需真实借款支用行为
@@ -415,5 +412,4 @@ val DEFAULT_BLACKLIST: Map<String, Set<String>> =
         "网商银行" to myBankWelfareDefaultBlacklist,
         "神奇物种" to dodoDefaultBlacklist,
         "蚂蚁新村" to stallDefaultBlacklist,
-        "福气鱼池" to fishPondDefaultBlacklist,
     )

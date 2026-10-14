@@ -251,6 +251,23 @@ object AntFarmRpcCall {
     }
 
     @JvmStatic
+    fun donationToLoveChickenProject(
+        projectId: String,
+        donationAmount: Int,
+    ): String {
+        val args = JSONObject().apply {
+            put("cele", 1)
+            put("donationAmount", donationAmount)
+            put("projectId", projectId)
+            put("requestType", "NORMAL")
+            put("sceneCode", "ANTFARM")
+            put("source", "H5")
+            put("version", VERSION)
+        }
+        return requestString("com.alipay.antfarm.donation", JSONArray().put(args).toString())
+    }
+
+    @JvmStatic
     fun listFarmTask(): String {
         val args1 =
             (
@@ -388,14 +405,35 @@ object AntFarmRpcCall {
         targetFarmId: String?,
         toolId: String?,
         toolType: String?,
+        achievementId: String? = null,
+        dollId: String? = null,
     ): String {
+        // 数字公仔补签卡使用时需指定补签目标
+        val supplementArgs =
+            if (!achievementId.isNullOrEmpty() && !dollId.isNullOrEmpty()) {
+                ",\"achievementId\":\"$achievementId\",\"dollId\":\"$dollId\""
+            } else {
+                ""
+            }
         val args1 =
             (
                 "[{\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"targetFarmId\":\"" +
-                    targetFarmId + "\",\"toolId\":\"" + toolId + "\",\"toolType\":\"" + toolType + "\",\"version\":\"" +
+                    targetFarmId + "\",\"toolId\":\"" + toolId + "\",\"toolType\":\"" + toolType + "\"" + supplementArgs +
+                    ",\"version\":\"" +
                     VERSION + "\"}]"
             )
         return requestString("com.alipay.antfarm.useFarmTool", args1)
+    }
+
+    /** 查询指定数字公仔的获得状态，响应含 dollInfoVO(acquired/achievementId) 与 dollTool 补签卡库存 */
+    @JvmStatic
+    fun queryAntfarmDoll(dollId: String?): String {
+        val args1 =
+            (
+                "[{\"dollId\":\"" + dollId + "\",\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"version\":\"" +
+                    VERSION + "\"}]"
+            )
+        return requestString("com.alipay.antfarm.queryAntfarmDoll", args1)
     }
 
     @JvmStatic
@@ -670,14 +708,18 @@ object AntFarmRpcCall {
 
     // 日常任务
     @JvmStatic
-    fun doFarmTask(bizKey: String?): String =
+    @JvmOverloads
+    fun doFarmTask(bizKey: String?, taskSceneCode: String? = null): String =
         requestString(
             "com.alipay.antfarm.doFarmTask",
-            (
-                "[{\"bizKey\":\"" + bizKey +
-                    "\",\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"version\":\"" +
-                    VERSION + "\"}]"
-            ),
+            JSONArray().put(JSONObject().apply {
+                put("bizKey", bizKey)
+                put("requestType", "NORMAL")
+                put("sceneCode", "ANTFARM")
+                put("source", "H5")
+                put("version", VERSION)
+                if (!taskSceneCode.isNullOrBlank()) put("taskSceneCode", taskSceneCode)
+            }).toString(),
         )
 
     @JvmStatic
@@ -1224,6 +1266,20 @@ object AntFarmRpcCall {
         } catch (_: Exception) {
             ""
         }
+
+    @JvmStatic
+    fun finishLeyuanTask(sceneCode: String, taskType: String): String = requestString(
+        "com.alipay.antieptask.finishTaskantfarm",
+        JSONArray().put(
+            JSONObject()
+                .put("outBizNo", taskType + System.currentTimeMillis())
+                .put("requestType", "NORMAL")
+                .put("sceneCode", sceneCode)
+                .put("source", "antfarm")
+                .put("taskType", taskType)
+                .put("version", GAME_CENTER_VERSION),
+        ).toString(),
+    )
 
     @JvmStatic
     fun receiveTaskAwardAntFarm(
@@ -1819,6 +1875,71 @@ object AntFarmRpcCall {
                 put("version", VERSION)
             }
         return RequestManager.requestString("com.alipay.antfarm.enterDonationCompetitionRank", "[$args]")
+    }
+
+    @JvmStatic
+    fun participateCompetition(): String {
+        val args =
+            JSONObject().apply {
+                put("requestType", "NORMAL")
+                put("sceneCode", "ANTFARM")
+                put("source", "H5")
+                put("version", VERSION)
+            }
+        return RequestManager.requestString("com.alipay.antfarm.participateCompetition", "[$args]")
+    }
+
+    @JvmStatic
+    fun getAnnGift(): String {
+        val args =
+            JSONObject().apply {
+                put("requestType", "NORMAL")
+                put("sceneCode", "ANTFARM")
+                put("source", "H5")
+                put("version", VERSION)
+            }
+        return RequestManager.requestString("com.alipay.antfarm.getAnnGift", "[$args]")
+    }
+
+    @JvmStatic
+    fun listCompetitionTask(): String {
+        val args =
+            JSONObject().apply {
+                put("requestType", "NORMAL")
+                put("sceneCode", "ANTFARM")
+                put("source", "H5")
+                put("version", VERSION)
+            }
+        return RequestManager.requestString("com.alipay.antfarm.listCompetitionTask", "[$args]")
+    }
+
+    @JvmStatic
+    fun queryAllMemberRankInfo(): String {
+        val args =
+            JSONObject().apply {
+                put("requestType", "NORMAL")
+                put("sceneCode", "ANTFARM")
+                put("source", "H5")
+                put("version", VERSION)
+            }
+        return RequestManager.requestString("com.alipay.antfarm.queryAllMemberRankInfo", "[$args]")
+    }
+
+    @JvmStatic
+    fun queryPageRankInfo(
+        rankRoundId: String,
+        pageNo: Int,
+    ): String {
+        val args =
+            JSONObject().apply {
+                put("pageNo", pageNo)
+                put("rankRoundId", rankRoundId)
+                put("requestType", "NORMAL")
+                put("sceneCode", "ANTFARM")
+                put("source", "H5")
+                put("version", VERSION)
+            }
+        return RequestManager.requestString("com.alipay.antfarm.queryPageRankInfo", "[$args]")
     }
 
     @JvmStatic

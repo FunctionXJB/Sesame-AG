@@ -41,6 +41,7 @@ class BaseModel : Model() {
         modelFields.addField(timedTaskModel) // 定时任务模式选择
         modelFields.addField(timeoutRestart) // 超时是否重启
         modelFields.addField(waitWhenException) // 异常发生时的等待时间
+        modelFields.addField(exceptionPauseThreshold) // 连续失败自动挂起阈值
         modelFields.addField(errNotify) // 异常通知开关
         modelFields.addField(setMaxErrorCount) // 异常次数阈值
         modelFields.addField(customRpcScheduleEnable) // 自定义RPC(配置文件+定时执行)
@@ -56,6 +57,7 @@ class BaseModel : Model() {
         modelFields.addField(enableOnGoing) // 是否开启状态栏禁删
         modelFields.addField(languageSimplifiedChinese) // 是否只显示中文并设置时区
         modelFields.addField(toastPerfix) // 气泡提示的前缀
+        modelFields.addField(defaultCityCode) // 城市定位失败时的默认城市代码
         return modelFields
     }
 
@@ -209,6 +211,18 @@ class BaseModel : Model() {
             )
 
         /**
+         * 连续失败自动挂起阈值（次），0 表示关闭自动挂起
+         */
+        val exceptionPauseThreshold: IntegerModelField =
+            IntegerModelField(
+                "exceptionPauseThreshold",
+                "连续失败挂起阈值(次)",
+                3,
+                0,
+                10,
+            ).withDesc("任务连续执行异常达到该次数后自动挂起一段「异常等待时间」；填 0 关闭连续失败自动挂起。")
+
+        /**
          * 异常发生时的等待时间（分钟）
          */
         val waitWhenException: MultiplyIntegerModelField =
@@ -219,7 +233,7 @@ class BaseModel : Model() {
                 0,
                 24 * 60,
                 60000,
-            ).withDesc("任务运行异常后的额外等待时间；填 0 表示异常后不额外挂起。")
+            ).withDesc("任务触发服务端限流或连续失败等异常保护后的挂起时长；填 0 表示异常后不额外挂起。")
 
         /**
          * 异常通知开关
@@ -291,6 +305,14 @@ class BaseModel : Model() {
         val toastPerfix: StringModelField =
             StringModelField("toastPerfix", "气泡前缀", "").withDesc(
                 "气泡提示前置文本，非空时会拼接在每条提示前。",
+            )
+
+        /**
+         * 默认城市代码（城市定位失败时的兑底）
+         */
+        val defaultCityCode: StringModelField =
+            StringModelField("defaultCityCode", "默认城市代码", "").withDesc(
+                "城市定位失败时使用的默认城市代码（如 330100=杭州），留空则先尝试最近一次成功定位的城市；均不可用时跳过城市相关子任务。",
             )
 
         /**

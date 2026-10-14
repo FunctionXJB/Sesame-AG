@@ -84,6 +84,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
@@ -119,6 +120,7 @@ import io.github.aoguai.sesameag.entity.friend.FriendSelectionScope
 import io.github.aoguai.sesameag.entity.friend.FriendSelectionSpec
 import io.github.aoguai.sesameag.hook.ApplicationHookConstants
 import io.github.aoguai.sesameag.model.modelFieldExt.ChoiceSwitchMeta
+import io.github.aoguai.sesameag.model.modelFieldExt.FriendSelectionEditorMeta
 import io.github.aoguai.sesameag.model.modelFieldExt.IntegerModelField
 import io.github.aoguai.sesameag.model.modelFieldExt.TimeFieldMeta
 import io.github.aoguai.sesameag.ui.screen.components.DelayedLoadingIndicator
@@ -142,6 +144,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -208,6 +211,13 @@ fun AccountSettingsScreen(
         modelFieldsState
     } else {
         modelListState
+    }
+    val isCompactWidth =
+        !currentWindowAdaptiveInfoV2().windowSizeClass.isWidthAtLeastBreakpoint(
+            WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND
+        )
+    LaunchedEffect(selectedModelCode) {
+        modelFieldsState.scrollToItem(0)
     }
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -316,7 +326,7 @@ fun AccountSettingsScreen(
                     }
                 },
                 navigationIcon = {
-                    if (selectedModelCode == null) {
+                    if (selectedModelCode == null || isCompactWidth) {
                         IconButton(onClick = ::requestBack) {
                             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
                         }
@@ -502,6 +512,9 @@ fun AccountSettingsScreen(
             value = state.drafts[request.field.key].orEmpty(),
             optionsState = state.fieldOptions[request.field.key] ?: FieldOptionsState.NotRequested,
             onLoad = { accountViewModel.loadFieldOptions(request.field.key) },
+            onRefresh = if (accountViewModel.exchangeTargetFor(request.field.key) != null) {
+                { accountViewModel.loadFieldOptions(request.field.key, forceRefresh = true) }
+            } else null,
             onDismiss = {
                 selectionModelCode = null
                 selectionFieldCode = null
@@ -1088,6 +1101,7 @@ private fun SelectionEditorDialog(
     value: String,
     optionsState: FieldOptionsState,
     onLoad: () -> Unit,
+    onRefresh: (() -> Unit)?,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
 ) {
@@ -1109,6 +1123,22 @@ private fun SelectionEditorDialog(
                     .padding(16.dp)
             ) {
                 Text(request.field.name, style = MaterialTheme.typography.headlineSmall)
+                if (onRefresh != null) {
+                    val refreshing = optionsState is FieldOptionsState.Loading ||
+                        (optionsState as? FieldOptionsState.Ready)?.isRefreshing == true
+                    TextButton(
+                        onClick = onRefresh,
+                        enabled = !refreshing && optionsState !is FieldOptionsState.NotRequested,
+                        modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp),
+                    ) {
+                        Icon(Icons.Filled.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(if (refreshing) "刷新中…" else "刷新列表")
+                    }
+                }
+                (optionsState as? FieldOptionsState.Ready)?.refreshError?.let { message ->
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                }
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = search,
@@ -1124,7 +1154,7 @@ private fun SelectionEditorDialog(
                         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                             DelayedLoadingIndicator()
                         }
-                    is FieldOptionsState.Error -> BlockingMessage("选项加载失败", optionsState.message, "重试", onLoad)
+                    is FieldOptionsState.Error -> BlockingMessage("选项加载失败", optionsState.message, "重试", onRefresh ?: onLoad)
                     is FieldOptionsState.Ready -> LazyColumn(Modifier.weight(1f)) {
                         items(filtered, key = { it.id }) { option ->
                             SelectionOptionRow(
@@ -1207,6 +1237,7 @@ private fun FriendSelectionEditorScreen(
     onSave: (String) -> Unit,
 ) {
     val countEnabled = field.type == "FRIEND_SELECTION_COUNT"
+    val countLabel = (field.editorMeta as? FriendSelectionEditorMeta)?.countLabel ?: "次数"
     val parsed = remember(field.key, value) { parseFriendDraft(value, countEnabled) }
     var scopeValue by rememberSaveable(field.key.modelCode, field.key.fieldCode) {
         mutableStateOf(parsed.selection.selectionScope)
@@ -1421,6 +1452,7 @@ private fun FriendSelectionEditorScreen(
                         excludedGroups = excludeGroups,
                         onExcludedGroupsChange = { excludeGroups = it },
                         countEnabled = countEnabled,
+                        countLabel = countLabel,
                         defaultCount = defaultCount,
                         onDefaultCountChange = { defaultCount = it },
                         userCounts = userCounts,
@@ -1435,6 +1467,7 @@ private fun FriendSelectionEditorScreen(
                         preview = preview,
                         modifier = Modifier.width(340.dp).fillMaxHeight(),
                         scrollable = true,
+                        countLabel = countLabel,
                     )
                     }
                 }
@@ -1473,6 +1506,7 @@ private fun FriendSelectionEditorScreen(
                             excludedGroups = excludeGroups,
                             onExcludedGroupsChange = { excludeGroups = it },
                             countEnabled = countEnabled,
+                            countLabel = countLabel,
                             defaultCount = defaultCount,
                             onDefaultCountChange = { defaultCount = it },
                             userCounts = userCounts,
@@ -1482,7 +1516,7 @@ private fun FriendSelectionEditorScreen(
                             capabilityText = capabilityText(parsed.selection),
                         )
                     }
-                    item { FriendPreview(preview) }
+                    item { FriendPreview(preview, countLabel = countLabel) }
                 }
             }
         }
@@ -1520,6 +1554,7 @@ private fun FriendRuleEditor(
     excludedGroups: Set<String>,
     onExcludedGroupsChange: (Set<String>) -> Unit,
     countEnabled: Boolean,
+    countLabel: String = "次数",
     defaultCount: String,
     onDefaultCountChange: (String) -> Unit,
     userCounts: Map<String, Int>,
@@ -1610,7 +1645,7 @@ private fun FriendRuleEditor(
                 value = defaultCount,
                 onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) onDefaultCountChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("默认次数") },
+                label = { Text("默认$countLabel") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
@@ -1641,6 +1676,7 @@ private fun FriendRuleEditor(
                     null
                 },
                 onCountChange = { count -> onGroupCountsChange(groupCounts + (group.id to count)) },
+                countLabel = countLabel,
             )
         }
         Row(
@@ -1746,7 +1782,7 @@ private fun FriendRuleEditor(
                             if (raw.isEmpty() || raw.all { char -> char.isDigit() }) batchCount = raw
                         },
                         modifier = Modifier.weight(1f),
-                        label = { Text("批量次数") },
+                        label = { Text("批量$countLabel") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
@@ -1760,7 +1796,7 @@ private fun FriendRuleEditor(
                             batchCount.toIntOrNull()?.let { it >= 0 } == true,
                         modifier = Modifier.heightIn(min = 48.dp),
                     ) {
-                        Text("设置次数")
+                        Text("设置$countLabel")
                     }
                 }
             }
@@ -1808,6 +1844,7 @@ private fun FriendRuleEditor(
                     null
                 },
                 onCountChange = { count -> onUserCountsChange(userCounts + (profile.userId to count)) },
+                countLabel = countLabel,
             )
         }
     }
@@ -1821,6 +1858,7 @@ private fun SelectionCheckRow(
     onSelectedChange: (Boolean) -> Unit,
     count: Int?,
     onCountChange: (Int) -> Unit,
+    countLabel: String = "次数",
 ) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -1842,7 +1880,7 @@ private fun SelectionCheckRow(
                 value = count.toString(),
                 onValueChange = { it.toIntOrNull()?.let(onCountChange) },
                 modifier = Modifier.width(88.dp),
-                label = { Text("次数") },
+                label = { Text(countLabel) },
                 singleLine = true,
             )
         }
@@ -1854,6 +1892,7 @@ private fun FriendPreview(
     preview: io.github.aoguai.sesameag.util.friend.FriendSelectionPreview,
     modifier: Modifier = Modifier,
     scrollable: Boolean = false,
+    countLabel: String = "次数",
 ) {
     val contentModifier = if (scrollable) {
         modifier.verticalScroll(rememberScrollState())
@@ -1869,7 +1908,7 @@ private fun FriendPreview(
         preview.items.filter { it.effective || it.inactiveReason.isNotBlank() }.take(40).forEach { item ->
             ListItem(
                 supportingContent = {
-                    Text(if (item.effective) "生效${item.count?.let { " · $it 次" }.orEmpty()}" else item.inactiveReason)
+                    Text(if (item.effective) "生效${item.count?.let { " · $it $countLabel" }.orEmpty()}" else item.inactiveReason)
                 },
                 trailingContent = {
                     Icon(
