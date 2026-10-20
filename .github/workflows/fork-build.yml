@@ -94,7 +94,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t apks < <(find app/build/outputs/apk -maxdepth 2 -type f -name "*.apk" | sort)
+          # fork 场景仅需 arm64-v8a 产物，其他 ABI 不收集、不上传
+          mapfile -t apks < <(find app/build/outputs/apk -maxdepth 2 -type f -name "app-arm64-v8a-release.apk" | sort)
           if [[ ${#apks[@]} -eq 0 ]]; then
             echo "No APKs found" >&2
             exit 1
@@ -108,5 +109,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Sesame-AG-${{ github.ref_name }}
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/app-arm64-v8a-release.apk
           if-no-files-found: error
