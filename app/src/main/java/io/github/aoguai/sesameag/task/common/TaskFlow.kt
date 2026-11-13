@@ -560,7 +560,7 @@ class TaskFlowEngine(
                 }
 
             // ============ 软风险检测（RPC 响应中的滑块/验证码信号） ============
-            val responseObj = try { org.json.JSONObject(response) } catch (_: Exception) { null }
+            val responseObj: JSONObject? = response
             if (responseObj != null && io.github.aoguai.sesameag.util.RpcOfflineRisk.isOfflineRisk(responseObj)) {
                 val rcCode = io.github.aoguai.sesameag.util.RpcOfflineRisk.extractCode(responseObj)
                 val rcMsg = io.github.aoguai.sesameag.util.RpcOfflineRisk.extractMessage(responseObj)

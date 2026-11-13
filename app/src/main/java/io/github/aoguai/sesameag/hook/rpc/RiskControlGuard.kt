@@ -237,7 +237,6 @@ object RiskControlGuard {
                     Notify.sendAlert(
                         title = "需要完成验证",
                         content = "后台任务触发了支付宝安全验证，请打开支付宝完成滑块或人脸验证。",
-                        launchTargetApp = true,
                     )
                 }.onFailure { Log.printStackTrace(TAG, "待验证提醒发送失败", it) }
             }
@@ -313,11 +312,16 @@ object RiskControlGuard {
     private fun probeUnblocked(): Boolean {
         for ((index, fetch) in probeFetchers.withIndex()) {
             val raw = runCatching {
-                fetch()
+                ApplicationHookConstants.bypassOfflineThread.set(true)
+                try {
+                    fetch()
+                } finally {
+                    ApplicationHookConstants.bypassOfflineThread.remove()
+                }
             }.getOrNull()
             val response = raw
-                ?.let { str -> if (str.length > 0) JSONObject(str) else null }
-                .getOrNull()
+                ?.takeIf { it.length > 0 }
+                ?.let { text -> runCatching { JSONObject(text) }.getOrNull() }
             if (response == null) {
                 trace("探活[$index] 无有效响应，继续等待")
                 continue
