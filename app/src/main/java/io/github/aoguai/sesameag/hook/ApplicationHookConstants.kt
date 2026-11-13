@@ -536,7 +536,7 @@ object ApplicationHookConstants {
     }
 
     @JvmStatic
-    inline fun <reified T> withProbeBypassResult(block: () -> T): T {
+    internal inline fun <reified T> withProbeBypassResult(block: () -> T): T {
         bypassOfflineThread.set(true)
         try {
             return block()
