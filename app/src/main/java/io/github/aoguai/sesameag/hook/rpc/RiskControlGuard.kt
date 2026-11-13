@@ -313,13 +313,11 @@ object RiskControlGuard {
     private fun probeUnblocked(): Boolean {
         for ((index, fetch) in probeFetchers.withIndex()) {
             val raw = runCatching {
-                ApplicationHookConstants.withProbeBypass { fetch() }
-            }.onFailure {
-                Log.printStackTrace(TAG, "探活请求异常 index=$index", it)
+                fetch()
             }.getOrNull()
             val response = raw
-                ?.takeIf { it.isNotEmpty() }
-                ?.let { text -> runCatching { JSONObject(text) }.getOrNull() }
+                ?.let { str -> if (str.length > 0) JSONObject(str) else null }
+                .getOrNull()
             if (response == null) {
                 trace("探活[$index] 无有效响应，继续等待")
                 continue
