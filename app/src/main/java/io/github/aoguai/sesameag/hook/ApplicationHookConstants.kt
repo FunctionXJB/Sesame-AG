@@ -535,6 +535,16 @@ object ApplicationHookConstants {
         }
     }
 
+    @JvmStatic
+    inline fun <reified T> withProbeBypassResult(block: () -> T): T {
+        bypassOfflineThread.set(true)
+        try {
+            return block()
+        } finally {
+            bypassOfflineThread.remove()
+        }
+    }
+
     /**
      * 是否处于探针绕过模式（风险页面验证中）
      */

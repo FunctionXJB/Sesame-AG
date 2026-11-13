@@ -312,12 +312,7 @@ object RiskControlGuard {
     private fun probeUnblocked(): Boolean {
         for ((index, fetch) in probeFetchers.withIndex()) {
             val raw = runCatching {
-                ApplicationHookConstants.bypassOfflineThread.set(true)
-                try {
-                    fetch()
-                } finally {
-                    ApplicationHookConstants.bypassOfflineThread.remove()
-                }
+                ApplicationHookConstants.withProbeBypassResult { fetch() }
             }.getOrNull()
             val response = raw
                 ?.takeIf { it.length > 0 }
