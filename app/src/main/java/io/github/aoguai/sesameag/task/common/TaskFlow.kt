@@ -558,6 +558,22 @@ class TaskFlowEngine(
                     )
                 }
 
+            // ============ 软风险检测（RPC 响应中的滑块/验证码信号） ============
+            val responseObj = try { org.json.JSONObject(response) } catch (_: Exception) { null }
+            if (responseObj != null && io.github.aoguai.sesameag.util.RpcOfflineRisk.isOfflineRisk(responseObj)) {
+                val rcCode = io.github.aoguai.sesameag.util.RpcOfflineRisk.extractCode(responseObj)
+                val rcMsg = io.github.aoguai.sesameag.util.RpcOfflineRisk.extractMessage(responseObj)
+                runCatching {
+                    io.github.aoguai.sesameag.hook.rpc.RiskControlGuard.onVerificationRisk(
+                        source = "TaskFlow/${adapter.flowName}",
+                        code = rcCode,
+                        message = rcMsg,
+                        method = rcCode,
+                    )
+                }.onFailure { Log.printStackTrace("TaskFlow", "RiskControlGuard 软风险处理失败", it) }
+            }
+            // ============ / 软风险检测 ============
+
             RpcOfflineRisk.enterOfflineIfNeeded(adapter.flowName, response)
             val dailyRiskStopped = RpcDailyCircuit.isStopResponse(response)
             if (dailyRiskStopped || ApplicationHookConstants.isOffline()) {

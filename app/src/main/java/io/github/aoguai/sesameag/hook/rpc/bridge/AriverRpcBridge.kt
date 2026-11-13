@@ -4,6 +4,7 @@ import io.github.aoguai.sesameag.data.General
 import io.github.aoguai.sesameag.entity.RpcEntity
 import io.github.aoguai.sesameag.hook.RpcFallbackJsonFactory
 import io.github.aoguai.sesameag.hook.rpc.RpcDailyCircuit
+import io.github.aoguai.sesameag.hook.rpc.RiskControlGuard
 import org.json.JSONObject
 import io.github.aoguai.sesameag.hook.rpc.capture.RpcTrafficCapture
 import io.github.aoguai.sesameag.hook.rpc.intervallimit.RpcIntervalLimit
@@ -661,6 +662,17 @@ class AriverRpcBridge : RpcBridge {
                         val methodName = rpcEntity.requestMethod
 
                         if (isAuthLikeError(errorCode, errorMessage)) {
+                            // ============ 软风险触发 RiskControlGuard（暂停+探活+自动续跑） ============
+                            val methodNameKey = methodName?.takeIf { it.isNotBlank() } ?: requestUrl
+                            runCatching {
+                                RiskControlGuard.onVerificationRisk(
+                                    source = "AriverRpcBridge/auth_error",
+                                    code = errorCode,
+                                    message = errorMessage,
+                                    method = methodNameKey,
+                                )
+                            }.onFailure { Log.printStackTrace(TAG, "RiskControlGuard 软风险处理失败", it) }
+                            // ============ / 软风险处理 ============
                             return handleAuthLikeError(
                                 rpcEntity = rpcEntity,
                                 methodName = methodName,

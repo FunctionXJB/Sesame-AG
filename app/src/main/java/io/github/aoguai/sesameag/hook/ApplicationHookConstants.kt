@@ -514,4 +514,30 @@ object ApplicationHookConstants {
         job.invokeOnCompletion { debouncedJobs.remove(name, job) }
         return job
     }
+
+    // ============ 风险页面验证期间的探针绕过 ============
+
+    private val bypassOfflineThread = ThreadLocal<Boolean>()
+
+    /**
+     * 在风险页面验证期间临时绕过 offline 状态，允许探活请求通过。
+     * 适用于用户主动触发 RPC 探活（如验证成功后确认离线状态）。
+     */
+    @JvmStatic
+    fun withProbeBypass(block: () -> Unit): Boolean {
+        val wasOffline = offline
+        bypassOfflineThread.set(true)
+        try {
+            block()
+            return true
+        } finally {
+            bypassOfflineThread.remove()
+        }
+    }
+
+    /**
+     * 是否处于探针绕过模式（风险页面验证中）
+     */
+    @JvmStatic
+    fun isBypassingOffline(): Boolean = bypassOfflineThread.get() == true
 }

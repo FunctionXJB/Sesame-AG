@@ -54,6 +54,8 @@ class BaseModel : Model() {
         modelFields.addField(errNotify) // 异常通知开关
         modelFields.addField(setMaxErrorCount) // 异常次数阈值
         modelFields.addField(customRpcScheduleEnable) // 自定义RPC(配置文件+定时执行)
+        modelFields.addField(captchaAutoSolve) // 滑块自动求解开关
+        modelFields.addField(riskPageAutoPause) // 页面验证自动暂停
         modelFields.addField(debugMode) // 是否开启抓包调试模式
         modelFields.addField(logTotalSizeCapMb) // 日志归档总容量上限
         modelFields.addField(sendHookData) // 启用Hook数据转发
@@ -397,6 +399,22 @@ class BaseModel : Model() {
         val customRpcScheduleEnable: BooleanModelField =
             BooleanModelField("customRpcScheduleEnable", "自定义RPC | 配置文件定时执行(慎用)", false).withDesc(
                 "按 rpcRequest.json 中的定时配置执行自定义 RPC 调试项，适合研究接口，开启前先确认配置内容。",
+            )
+
+        /**
+         * 滑块自动求解开关（默认关闭，避免风控升级）
+         */
+        val captchaAutoSolve: BooleanModelField =
+            BooleanModelField("captchaAutoSolve", "滑块自动求解(高风险)", false).withDesc(
+                "开启后，H5 验证页出现时自动识别缺口并模拟拖动；失败会触发风控，建议保持关闭。",
+            )
+
+        /**
+         * 页面验证自动暂停开关
+         */
+        val riskPageAutoPause: BooleanModelField =
+            BooleanModelField("riskPageAutoPause", "页面验证自动暂停", true).withDesc(
+                "检测到 H5 验证页时自动暂停任务并探活，无需手动干预验证后恢复。",
             )
 
         /**

@@ -48,6 +48,9 @@ import io.github.aoguai.sesameag.hook.rpc.bridge.AriverRpcBridge
 import io.github.aoguai.sesameag.hook.rpc.bridge.RpcBridge
 import io.github.aoguai.sesameag.hook.rpc.capture.RpcTrafficCapture
 import io.github.aoguai.sesameag.hook.rpc.intervallimit.RpcIntervalLimit.clearIntervalLimit
+import io.github.aoguai.sesameag.hook.rpc.RiskControlGuard
+import io.github.aoguai.sesameag.hook.rpc.RiskVerifyPageWatcher
+import io.github.aoguai.sesameag.hook.rpc.RiskTier
 import io.github.aoguai.sesameag.hook.server.ModuleHttpServerManager.startIfNeeded
 import io.github.aoguai.sesameag.model.BaseModel
 import io.github.aoguai.sesameag.model.BaseModel.Companion.batteryPerm
@@ -1366,6 +1369,11 @@ class ApplicationHook {
                 setWakenAtTimeAlarm()
 
                 rpcBridge = AriverRpcBridge().also { it.load() }
+
+                // ============ 风控分级 + H5 验证页嗅探 ============
+                RiskVerifyPageWatcher.install(activeClassLoader)
+                record(TAG, "RiskVerifyPageWatcher installed")
+                // ============ / 风控分级 + H5 验证页嗅探 ============
 
                 start(userId)
                 checkBatteryPermission()
