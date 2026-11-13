@@ -279,5 +279,5 @@ object RiskVerifyPageWatcher {
     private fun currentTaskLabel(): String =
         runCatching {
             io.github.aoguai.sesameag.task.TaskExecutionReport.current()?.taskLabel()
-        }.getOrNull()?.takeIf { it.isNotBlank() } ?: "unknown"
+        }.getOrNull()?.takeIf { it.isNotEmpty() } ?: "unknown"
 }

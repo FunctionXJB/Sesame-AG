@@ -73,6 +73,9 @@ object PageStructureSnapshotter {
         return result
     }
 
+    /** 获取当前恢复态 Activity（可能为 null）。 */
+    fun resumedActivity(): Activity? = resumedActivityRef?.get()
+
     private fun captureOnMainThread(reason: String): String {
         val activity = resumedActivityRef?.get()
         if (activity == null) {

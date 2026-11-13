@@ -318,7 +318,7 @@ object RiskControlGuard {
                 Log.printStackTrace(TAG, "探活请求异常 index=$index", it)
             }.getOrNull()
             val response = raw
-                ?.takeIf { it.isNotBlank() }
+                ?.takeIf { it.isNotEmpty() }
                 ?.let { text -> runCatching { JSONObject(text) }.getOrNull() }
             if (response == null) {
                 trace("探活[$index] 无有效响应，继续等待")
@@ -401,14 +401,14 @@ object RiskControlGuard {
             // 归因：哪个任务触发的风控（模块/流程），排查时一眼能看出问题任务。
             append("task=").append(currentTaskLabel()).append(' ')
             append(source)
-            if (code.isNotBlank()) append(" code=").append(code)
-            if (message.isNotBlank()) append(" msg=").append(message.take(200))
+            if (code.isNotEmpty()) append(" code=").append(code)
+            if (message.isNotEmpty()) append(" msg=").append(message.take(200))
         }
 
     private fun currentTaskLabel(): String =
         runCatching {
             io.github.aoguai.sesameag.task.TaskExecutionReport.current()?.taskLabel()
-        }.getOrNull()?.takeIf { it.isNotBlank() } ?: "unknown"
+        }.getOrNull()?.takeIf { it.isNotEmpty() } ?: "unknown"
 
     const val REASON_VERIFY: String = "auth_like"
     const val REASON_HARD_BLOCK: String = "risk_hard_block"

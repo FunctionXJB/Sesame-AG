@@ -32,6 +32,9 @@ class RpcEntity @JvmOverloads constructor(
     var responseObject: Any? = null
     @Volatile
     var responseString: String? = null
+    val requestUrl: String?
+        get() = methodName
+
     /**
      * 设置响应结果并标记请求已完成。
      *

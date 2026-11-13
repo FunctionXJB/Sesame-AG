@@ -663,7 +663,7 @@ class AriverRpcBridge : RpcBridge {
 
                         if (isAuthLikeError(errorCode, errorMessage)) {
                             // ============ 软风险触发 RiskControlGuard（暂停+探活+自动续跑） ============
-                            val methodNameKey = methodName?.takeIf { it.isNotBlank() } ?: requestUrl
+                            val methodNameKey = methodName ?: "unknown"
                             runCatching {
                                 RiskControlGuard.onVerificationRisk(
                                     source = "AriverRpcBridge/auth_error",

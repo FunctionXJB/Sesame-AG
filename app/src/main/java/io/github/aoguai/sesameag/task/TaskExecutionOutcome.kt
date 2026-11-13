@@ -60,6 +60,9 @@ internal class TaskExecutionReport(
         exception.set(true)
     }
 
+    /** 当前任务标签（userId:sessionEpoch），用于风控日志归因。 */
+    fun taskLabel(): String = "${identity.userId}@${identity.sessionEpoch}"
+
     fun recordFlow(state: TaskFlowExecutionState, module: String, flow: String, result: TaskFlowRunResult) {
         flows[Triple(state, module, flow)] = result
     }
